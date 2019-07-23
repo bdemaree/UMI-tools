@@ -84,15 +84,15 @@ import os
 from builtins import dict
 from future.utils import iteritems
 
-import pysam
+# import pysam
 
-import umi_tools.Utilities as U
-import umi_tools.network as network
+import Utilities as U
+import network as network
 import umi_tools.umi_methods as umi_methods
 
 # add the generic docstring text
-__doc__ = __doc__ + U.GENERIC_DOCSTRING_GDC
-__doc__ = __doc__ + U.GROUP_DEDUP_GENERIC_OPTIONS
+#__doc__ = __doc__ + U.GENERIC_DOCSTRING_GDC
+#__doc__ = __doc__ + U.GROUP_DEDUP_GENERIC_OPTIONS
 
 
 def main(argv=None):
@@ -132,171 +132,176 @@ def main(argv=None):
     # add common options (-h/--help, ...) and parse command line
     (options, args) = U.Start(parser, argv=argv)
 
-    U.validateSamOptions(options)
+    # U.validateSamOptions(options)
 
-    if options.stdin != sys.stdin:
-        in_name = options.stdin.name
-        options.stdin.close()
-    else:
-        raise ValueError("Input on standard in not currently supported")
+    # if options.stdin != sys.stdin:
+    #     in_name = options.stdin.name
+    #     options.stdin.close()
+    # else:
+    #     raise ValueError("Input on standard in not currently supported")
 
-    if options.stdout != sys.stdout:
-        if options.no_sort_output:
-            out_name = options.stdout.name
-        else:
-            out_name = U.getTempFilename()
-            sorted_out_name = options.stdout.name
-        options.stdout.close()
-        assert options.output_bam, (
-            "To output a bam you must include --output-bam option")
-    else:
-        if options.no_sort_output:
-            out_name = "-"
-        else:
-            out_name = U.getTempFilename()
-            sorted_out_name = "-"
+    # if options.stdout != sys.stdout:
+    #     if options.no_sort_output:
+    #         out_name = options.stdout.name
+    #     else:
+    #         out_name = U.getTempFilename()
+    #         sorted_out_name = options.stdout.name
+    #     options.stdout.close()
+    #     assert options.output_bam, (
+    #         "To output a bam you must include --output-bam option")
+    # else:
+    #     if options.no_sort_output:
+    #         out_name = "-"
+    #     else:
+    #         out_name = U.getTempFilename()
+    #         sorted_out_name = "-"
 
-    if not options.no_sort_output:  # need to determine the output format for sort
-        if options.out_sam:
-            sort_format = "sam"
-        else:
-            sort_format = "bam"
+    # if not options.no_sort_output:  # need to determine the output format for sort
+    #     if options.out_sam:
+    #         sort_format = "sam"
+    #     else:
+    #         sort_format = "bam"
+    #
+    # if options.in_sam:
+    #     in_mode = "r"
+    # else:
+    #     in_mode = "rb"
+    #
+    # if options.out_sam:
+    #     out_mode = "wh"
+    # else:
+    #     out_mode = "wb"
 
-    if options.in_sam:
-        in_mode = "r"
-    else:
-        in_mode = "rb"
+    # infile = pysam.Samfile(in_name, in_mode)
 
-    if options.out_sam:
-        out_mode = "wh"
-    else:
-        out_mode = "wb"
+    # if options.output_bam:
+    #     outfile = pysam.Samfile(out_name, out_mode, template=infile)
+    # else:
+    #     outfile = None
+    #
+    # if options.tsv:
+    #     mapping_outfile = U.openFile(options.tsv, "w")
+    #     mapping_outfile.write("%s\n" % "\t".join(
+    #         ["read_id", "contig", "position", "gene", "umi", "umi_count",
+    #          "final_umi", "final_umi_count", "unique_id"]))
 
-    infile = pysam.Samfile(in_name, in_mode)
+    # nInput, nOutput, unique_id, input_reads, output_reads = 0, 0, 0, 0, 0
 
-    if options.output_bam:
-        outfile = pysam.Samfile(out_name, out_mode, template=infile)
-    else:
-        outfile = None
+    # gene_tag = options.gene_tag
+    # metacontig2contig = None
 
-    if options.tsv:
-        mapping_outfile = U.openFile(options.tsv, "w")
-        mapping_outfile.write("%s\n" % "\t".join(
-            ["read_id", "contig", "position", "gene", "umi", "umi_count",
-             "final_umi", "final_umi_count", "unique_id"]))
+    # if options.chrom:
+    #     inreads = infile.fetch(reference=options.chrom)
+    # else:
+    #     if options.per_gene and options.gene_transcript_map:
+    #         metacontig2contig = umi_methods.getMetaContig2contig(
+    #             infile, options.gene_transcript_map)
+    #         metatag = "MC"
+    #         inreads = umi_methods.metafetcher(infile, metacontig2contig, metatag)
+    #         gene_tag = metatag
+    #
+    #     else:
+    #         inreads = infile.fetch(until_eof=options.output_unmapped)
 
-    nInput, nOutput, unique_id, input_reads, output_reads = 0, 0, 0, 0, 0
+    # bundle_iterator = umi_methods.get_bundles(
+    #     options,
+    #     all_reads=True,
+    #     return_read2=True,
+    #     return_unmapped=options.output_unmapped,
+    #     metacontig_contig=metacontig2contig)
 
-    gene_tag = options.gene_tag
-    metacontig2contig = None
+    # write out read2s and unmapped (if these options are set)
+    # if status == 'single_read':
+    #     # bundle is just a single read here
+    #     nInput += 1
+    #
+    #     if outfile:
+    #         outfile.write(bundle)
+    #
+    #     nOutput += 1
+    #     continue
 
-    if options.chrom:
-        inreads = infile.fetch(reference=options.chrom)
-    else:
-        if options.per_gene and options.gene_transcript_map:
-            metacontig2contig = umi_methods.getMetaContig2contig(
-                infile, options.gene_transcript_map)
-            metatag = "MC"
-            inreads = umi_methods.metafetcher(infile, metacontig2contig, metatag)
-            gene_tag = metatag
+    ### umi_dict: {umi: count_of_umi}
 
-        else:
-            inreads = infile.fetch(until_eof=options.output_unmapped)
+    umi_dict = {'ACGCGCG': 34, 'ACGCGCC': 1, 'TTGCGTT': 5}
 
-    bundle_iterator = umi_methods.get_bundles(
-        options,
-        all_reads=True,
-        return_read2=True,
-        return_unmapped=options.output_unmapped,
-        metacontig_contig=metacontig2contig)
+    umis = umi_dict.keys()
+    counts = umi_dict
 
-    for bundle, key, status in bundle_iterator(inreads):
+    # umis = bundle.keys()
+    # counts = {umi: bundle[umi]["count"] for umi in umis}
 
-        # write out read2s and unmapped (if these options are set)
-        if status == 'single_read':
-            # bundle is just a single read here
-            nInput += 1
+    # nInput += sum(counts.values())
 
-            if outfile:
-                outfile.write(bundle)
+    # while nOutput >= output_reads + 10000:
+    #     output_reads += 10000
+    #     U.info("Written out %i reads" % output_reads)
+    #
+    # while nInput >= input_reads + 1000000:
+    #     input_reads += 1000000
+    #     U.info("Parsed %i input reads" % input_reads)
 
-            nOutput += 1
-            continue
+    # set up UMIClusterer functor with methods specific to
+    # specified options.method
+    processor = network.UMIClusterer(options.method)
 
-        umis = bundle.keys()
-        counts = {umi: bundle[umi]["count"] for umi in umis}
+    # group the umis
+    groups = processor(
+        umis,
+        counts,
+        threshold=options.threshold)
 
-        nInput += sum(counts.values())
+    # for umi_group in groups:
+    #     top_umi = umi_group[0]
+    #
+    #     group_count = sum(counts[umi] for umi in umi_group)
+    #
+    #     for umi in umi_group:
+    #         reads = bundle[umi]['read']
+    #         for read in reads:
+    #             if outfile:
+    #                 # Add the 'UG' tag to the read
+    #                 read.tags += [('UG', unique_id)]
+    #                 read.tags += [(options.umi_group_tag, top_umi)]
+    #                 outfile.write(read)
+    #
+    #             if options.tsv:
+    #                 if options.per_gene:
+    #                     gene = read.get_tag(gene_tag)
+    #                 else:
+    #                     gene = "NA"
+    #                 mapping_outfile.write("%s\n" % "\t".join(map(str, (
+    #                     read.query_name, read.reference_name,
+    #                     umi_methods.get_read_position(
+    #                         read, options.soft_clip_threshold)[1],
+    #                     gene,
+    #                     umi.decode(),
+    #                     counts[umi],
+    #                     top_umi.decode(),
+    #                     group_count,
+    #                     unique_id))))
+    #
+    #             nOutput += 1
+    #
+    #     unique_id += 1
+    #
+    # if outfile:
+    #     outfile.close()
+    #     if not options.no_sort_output:
+    #         # sort the output
+    #         pysam.sort("-o", sorted_out_name, "-O", sort_format, out_name)
+    #         os.unlink(out_name)  # delete the tempfile
 
-        while nOutput >= output_reads + 10000:
-            output_reads += 10000
-            U.info("Written out %i reads" % output_reads)
-
-        while nInput >= input_reads + 1000000:
-            input_reads += 1000000
-            U.info("Parsed %i input reads" % input_reads)
-
-        # set up UMIClusterer functor with methods specific to
-        # specified options.method
-        processor = network.UMIClusterer(options.method)
-
-        # group the umis
-        groups = processor(
-            umis,
-            counts,
-            threshold=options.threshold)
-
-        for umi_group in groups:
-            top_umi = umi_group[0]
-
-            group_count = sum(counts[umi] for umi in umi_group)
-
-            for umi in umi_group:
-                reads = bundle[umi]['read']
-                for read in reads:
-                    if outfile:
-                        # Add the 'UG' tag to the read
-                        read.tags += [('UG', unique_id)]
-                        read.tags += [(options.umi_group_tag, top_umi)]
-                        outfile.write(read)
-
-                    if options.tsv:
-                        if options.per_gene:
-                            gene = read.get_tag(gene_tag)
-                        else:
-                            gene = "NA"
-                        mapping_outfile.write("%s\n" % "\t".join(map(str, (
-                            read.query_name, read.reference_name,
-                            umi_methods.get_read_position(
-                                read, options.soft_clip_threshold)[1],
-                            gene,
-                            umi.decode(),
-                            counts[umi],
-                            top_umi.decode(),
-                            group_count,
-                            unique_id))))
-
-                    nOutput += 1
-
-            unique_id += 1
-
-    if outfile:
-        outfile.close()
-        if not options.no_sort_output:
-            # sort the output
-            pysam.sort("-o", sorted_out_name, "-O", sort_format, out_name)
-            os.unlink(out_name)  # delete the tempfile
-
-    if options.tsv:
-        mapping_outfile.close()
+    # if options.tsv:
+    #     mapping_outfile.close()
 
     # write footer and output benchmark information.
-    U.info(
-        "Reads: %s" % ", ".join(["%s: %s" % (x[0], x[1]) for x in
-                                 bundle_iterator.read_events.most_common()]))
-    U.info("Number of reads out: %i, Number of groups: %i" %
-           (nOutput, unique_id))
-    U.Stop()
+    # U.info(
+    #     "Reads: %s" % ", ".join(["%s: %s" % (x[0], x[1]) for x in
+    #                              bundle_iterator.read_events.most_common()]))
+    # U.info("Number of reads out: %i, Number of groups: %i" %
+    #        (nOutput, unique_id))
+    # U.Stop()
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))

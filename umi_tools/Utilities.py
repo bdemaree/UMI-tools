@@ -949,10 +949,10 @@ def Start(parser=None,
         else:
             global_options.stdlog = sys.stdout
 
-    if global_options.loglevel >= 1:
-        global_options.stdlog.write(getHeader() + "\n")
-        global_options.stdlog.write(getParams(global_options) + "\n")
-        global_options.stdlog.flush()
+    # if global_options.loglevel >= 1:
+    #     global_options.stdlog.write(getHeader() + "\n")
+    #     global_options.stdlog.write(getParams(global_options) + "\n")
+    #     global_options.stdlog.flush()
 
     # configure logging
     # map from 0-10 to logging scale

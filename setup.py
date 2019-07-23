@@ -99,8 +99,8 @@ setup(
     # package information
     name='umi_tools',
     version=version,
-    description='umi_tools: Tools for UMI analyses',
-    author='Ian Sudbery',
+    description='umi_tools: Tools for UMI analyses, modified for Ab seq experiments',
+    author='Ian Sudbery and Ben Demaree',
     author_email='i.sudbery@sheffield.ac.uk',
     license="MIT",
     platforms=["any"],

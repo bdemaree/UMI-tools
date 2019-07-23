@@ -16,8 +16,8 @@ import sys
 import regex
 import numpy as np
 
-from umi_tools._dedup_umi import edit_distance
-import umi_tools.Utilities as U
+from _dedup_umi import edit_distance
+import Utilities as U
 
 sys.setrecursionlimit(10000)
 
@@ -318,52 +318,53 @@ class UMIClusterer:
 
         return groups
 
-    def __init__(self, cluster_method="directional"):
-        ''' select the required class methods for the cluster_method'''
+    def __init__(self):
+        ''' initialize '''
+        pass
+    #
+    #     self.max_umis_per_position = 0
+    #     self.total_umis_per_position = 0
+    #     self.positions = 0
+    #
+    #     if cluster_method == "adjacency":
+    #         self.get_adj_list = self._get_adj_list_adjacency
+    #         self.get_connected_components = self._get_connected_components_adjacency
+    #         self.get_groups = self._group_adjacency
+    #
+    #     elif cluster_method == "directional":
+    #         self.get_adj_list = self._get_adj_list_directional
+    #         self.get_connected_components = self._get_connected_components_adjacency
+    #         self.get_groups = self._group_directional
+    #
+    #     elif cluster_method == "cluster":
+    #         self.get_adj_list = self._get_adj_list_adjacency
+    #         self.get_connected_components = self._get_connected_components_adjacency
+    #         self.get_groups = self._group_cluster
+    #
+    #     elif cluster_method == "percentile":
+    #         self.get_adj_list = self._get_adj_list_null
+    #         self.get_connected_components = self._get_connected_components_null
+    #         # percentile method incompatible with defining UMI groups
+    #         self.get_groups = self._group_percentile
+    #
+    #     elif cluster_method == "unique":
+    #         self.get_adj_list = self._get_adj_list_null
+    #         self.get_connected_components = self._get_connected_components_null
+    #         self.get_groups = self._group_unique
 
-        self.max_umis_per_position = 0
-        self.total_umis_per_position = 0
-        self.positions = 0
-
-        if cluster_method == "adjacency":
-            self.get_adj_list = self._get_adj_list_adjacency
-            self.get_connected_components = self._get_connected_components_adjacency
-            self.get_groups = self._group_adjacency
-
-        elif cluster_method == "directional":
-            self.get_adj_list = self._get_adj_list_directional
-            self.get_connected_components = self._get_connected_components_adjacency
-            self.get_groups = self._group_directional
-
-        elif cluster_method == "cluster":
-            self.get_adj_list = self._get_adj_list_adjacency
-            self.get_connected_components = self._get_connected_components_adjacency
-            self.get_groups = self._group_cluster
-
-        elif cluster_method == "percentile":
-            self.get_adj_list = self._get_adj_list_null
-            self.get_connected_components = self._get_connected_components_null
-            # percentile method incompatible with defining UMI groups
-            self.get_groups = self._group_percentile
-
-        elif cluster_method == "unique":
-            self.get_adj_list = self._get_adj_list_null
-            self.get_connected_components = self._get_connected_components_null
-            self.get_groups = self._group_unique
-
-    def __call__(self, umis, counts, threshold):
+    def __call__(self, umis, counts, threshold, cluster_method):
         '''Counts is a directionary that maps UMIs to their counts'''
 
-        umis = list(umis)
-
-        self.positions += 1
-
-        number_of_umis = len(umis)
-
-        self.total_umis_per_position += number_of_umis
-
-        if number_of_umis > self.max_umis_per_position:
-            self.max_umis_per_position = number_of_umis
+        # umis = list(umis)
+        #
+        # self.positions += 1
+        #
+        # number_of_umis = len(umis)
+        #
+        # self.total_umis_per_position += number_of_umis
+        #
+        # if number_of_umis > self.max_umis_per_position:
+        #     self.max_umis_per_position = number_of_umis
 
         len_umis = [len(x) for x in umis]
 
@@ -371,10 +372,100 @@ class UMIClusterer:
             "not all umis are the same length(!):  %d - %d" % (
                 min(len_umis), max(len_umis)))
 
-        adj_list = self.get_adj_list(umis, counts, threshold)
-        clusters = self.get_connected_components(umis, adj_list, counts)
-        final_umis = [list(x) for x in
-                      self.get_groups(clusters, adj_list, counts)]
+        # if selecting one umi clustering method only
+
+        if cluster_method != 'all':
+
+            final_umis = {'adjacency': [],
+                          'directional': [],
+                          'cluster': [],
+                          'percentile': [],
+                          'unique': []}
+
+            if "adjacency" in cluster_method:
+                self.get_adj_list = self._get_adj_list_adjacency
+                self.get_connected_components = self._get_connected_components_adjacency
+                self.get_groups = self._group_adjacency
+
+                adj_list = self.get_adj_list(umis, counts, threshold)
+                clusters = self.get_connected_components(umis, adj_list, counts)
+                final_umis["adjacency"] += [list(x) for x in
+                              self.get_groups(clusters, adj_list, counts)]
+
+            if "directional" in cluster_method:
+                self.get_adj_list = self._get_adj_list_directional
+                self.get_connected_components = self._get_connected_components_adjacency
+                self.get_groups = self._group_directional
+
+                adj_list = self.get_adj_list(umis, counts, threshold)
+                clusters = self.get_connected_components(umis, adj_list, counts)
+                final_umis["directional"] += [list(x) for x in
+                              self.get_groups(clusters, adj_list, counts)]
+
+            if "cluster" in cluster_method:
+                self.get_adj_list = self._get_adj_list_adjacency
+                self.get_connected_components = self._get_connected_components_adjacency
+                self.get_groups = self._group_cluster
+
+                adj_list = self.get_adj_list(umis, counts, threshold)
+                clusters = self.get_connected_components(umis, adj_list, counts)
+                final_umis["cluster"] += [list(x) for x in
+                              self.get_groups(clusters, adj_list, counts)]
+
+            if "percentile" in cluster_method:
+                self.get_adj_list = self._get_adj_list_null
+                self.get_connected_components = self._get_connected_components_null
+                # percentile method incompatible with defining UMI groups
+                self.get_groups = self._group_percentile
+
+                adj_list = self.get_adj_list(umis, counts, threshold)
+                clusters = self.get_connected_components(umis, adj_list, counts)
+                final_umis["percentile"] += [list(x) for x in
+                              self.get_groups(clusters, adj_list, counts)]
+
+            if "unique" in cluster_method:
+                self.get_adj_list = self._get_adj_list_null
+                self.get_connected_components = self._get_connected_components_null
+                self.get_groups = self._group_unique
+
+                adj_list = self.get_adj_list(umis, counts, threshold)
+                clusters = self.get_connected_components(umis, adj_list, counts)
+                final_umis["unique"] += [list(x) for x in
+                              self.get_groups(clusters, adj_list, counts)]
+
+        # do all umi clustering methods, calculating adj lists and sharing common results
+        elif cluster_method == 'all':
+
+            # get all possible adjacency lists
+            adj_list_adjacency = self._get_adj_list_adjacency(umis, counts, threshold)
+            adj_list_directional = self._get_adj_list_directional(umis, counts, threshold)
+            adj_list_null = self._get_adj_list_directional(umis, counts, threshold)
+
+            # divide next steps by method
+
+            ### adjacency
+            clusters_adjacency = self._get_connected_components_adjacency(umis, adj_list_adjacency, counts)
+            umis_adjacency = [list(x) for x in self._group_adjacency(clusters_adjacency, adj_list_adjacency, counts)]
+
+            ### directional
+            clusters_directional = self._get_connected_components_adjacency(umis, adj_list_directional, counts)
+            umis_directional = [list(x) for x in self._group_directional(clusters_directional, adj_list_directional, counts)]
+
+            ### cluster
+            umis_cluster = [list(x) for x in self._group_cluster(clusters_adjacency, adj_list_adjacency, counts)]
+
+            ### percentile
+            clusters_percentile = self._get_connected_components_null(umis, adj_list_null, counts)
+            umis_percentile = [list(x) for x in self._group_percentile(clusters_percentile, adj_list_null, counts)]
+
+            ### unique
+            umis_unique = [list(x) for x in self._group_unique(clusters_percentile, adj_list_null, counts)]
+
+            final_umis = {'adjacency': umis_adjacency,
+                          'directional': umis_directional,
+                          'cluster': umis_cluster,
+                          'percentile': umis_percentile,
+                          'unique': umis_unique}
 
         return final_umis
 
